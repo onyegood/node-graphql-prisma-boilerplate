@@ -7,8 +7,8 @@ GraphQL Node and Prisma TDD
 Step 1: Create a folder in the root directory named config
 Step 2: Create dev.env, prod.env and test.env files inside config folder
 Step 3: In dev.env paste and provide all the environment variables to deploy your dev environment
-``PRISMA_ENDPOINT=http://localhost:4466/project-name-here/dev ``
-``PRISMA_SECRET=choose-a-secret-key``
+`PRISMA_ENDPOINT=http://localhost:4466/project-name-here/dev `
+`PRISMA_SECRET=choose-a-secret-key`
 `JWT_SECRET=choose-a-secret-key` 
 `SEND_GRID_KEY=your-send-grid_key`
 `REDIRECT_DOMAIN=http://localhost:3000` 
