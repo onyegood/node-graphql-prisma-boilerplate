@@ -1,0 +1,33 @@
+type User {
+  id: ID! @id
+  firstName: String!
+  lastName: String!
+  email: String! @unique
+  phone: String! @unique
+  password: String!
+  role: Role @relation(name: "RoleToUser", onDelete: SET_NULL)
+  resetToken: String
+  resetTokenExpiration: String
+  platform: String
+  network: String
+  os: String
+  profilePicture: String
+  updatedAt: DateTime! @updatedAt
+  createdAt: DateTime! @createdAt
+}
+
+type Role {
+  id: ID! @id
+  name: String!
+  permissions: [Permission!]!
+    @relation(name: "PermissionToRole", onDelete: SET_NULL)
+  updatedAt: DateTime! @updatedAt
+  createdAt: DateTime! @createdAt
+}
+
+type Permission {
+  id: ID! @id
+  name: String!
+  updatedAt: DateTime! @updatedAt
+  createdAt: DateTime! @createdAt
+}
