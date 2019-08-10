@@ -1,3 +1,4 @@
-endpoint: ${env:PRISMA_ENDPOINT}
+#endpoint: ${env:PRISMA_ENDPOINT}
+endpoint: https://boilerplate-f7543f0a21.herokuapp.com/node-graphql-prisma-boilerplate/dev
 datamodel: datamodel.graphql
 secret: ${env:PRISMA_SECRET}
