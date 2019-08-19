@@ -1,5 +1,5 @@
-# source: https://boilerplate-f7543f0a21.herokuapp.com/node-graphql-prisma-boilerplate/dev
-# timestamp: Sat Aug 10 2019 23:06:47 GMT+0100 (West Africa Standard Time)
+# source: http://localhost:4466/prisma-boilerplate/dev
+# timestamp: Mon Aug 19 2019 13:45:33 GMT+0100 (West Africa Standard Time)
 
 type AggregatePermission {
   count: Int!
@@ -19,6 +19,9 @@ type BatchPayload {
 }
 
 scalar DateTime
+
+"""Raw JSON value"""
+scalar Json
 
 """
 The `Long` scalar type represents non-fractional signed whole numeric values.
@@ -45,6 +48,7 @@ type Mutation {
   deleteManyUsers(where: UserWhereInput): BatchPayload!
   deleteManyRoles(where: RoleWhereInput): BatchPayload!
   deleteManyPermissions(where: PermissionWhereInput): BatchPayload!
+  executeRaw(database: PrismaDatabase, query: String!): Json!
 }
 
 enum MutationType {
@@ -481,6 +485,10 @@ input PermissionWhereInput {
 
 input PermissionWhereUniqueInput {
   id: ID
+}
+
+enum PrismaDatabase {
+  default
 }
 
 type Query {

@@ -1,0 +1,45 @@
+# import PermissionOrderByInput, from "../generated/prisma.graphql";
+
+type Query {
+  permissions(
+    query: String
+    first: Int
+    skip: Int
+    after: String
+    orderBy: PermissionOrderByInput
+  ): [Permission!]!
+  permission(id: ID!): Permission!
+}
+
+type Mutation {
+  createPermission(data: CreatePermissionInput!): Permission!
+  updatePermission(id: ID!, data: UpdatePermissionInput!): Permission!
+  deletePermission(id: ID!): Permission!
+  updateManyPermissions(id: [ID!]!, data: UpdatePermissionInput!): Permission!
+  deleteManyPermissions(id: [ID!]!): Permission!
+}
+
+# type Subscription {
+
+# }
+
+input CreatePermissionInput {
+  name: String!
+}
+
+input UpdatePermissionInput {
+  name: String
+}
+
+type Permission {
+  id: ID!
+  name: String!
+  updatedAt: String!
+  createdAt: String!
+}
+
+enum MutationType {
+  CREATED
+  UPDATED
+  DELETED
+}

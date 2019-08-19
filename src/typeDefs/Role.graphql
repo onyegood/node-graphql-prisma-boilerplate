@@ -1,0 +1,48 @@
+# import RoleOrderByInput, from "../generated/prisma.graphql";
+
+type Query {
+  roles(
+    query: String
+    first: Int
+    skip: Int
+    after: String
+    orderBy: RoleOrderByInput
+  ): [Role!]!
+  role(id: ID!): Role!
+}
+
+type Mutation {
+  createRole(data: CreateRoleInput!): Role!
+  updateRole(id: ID!, data: UpdateRoleInput!): Role!
+  deleteRole(id: ID!): Role!
+  updateManyRoles(id: [ID!]!, data: UpdateRoleInput!): Role!
+  deleteManyRoles(id: [ID!]!): Role!
+}
+
+# type Subscription {
+
+# }
+
+input CreateRoleInput {
+  name: String!
+  permissions: [ID!]!
+}
+
+input UpdateRoleInput {
+  name: String
+  permissions: [ID]
+}
+
+type Role {
+  id: ID!
+  name: String!
+  updatedAt: String!
+  createdAt: String!
+  permissions: [Permission!]!
+}
+
+enum MutationType {
+  CREATED
+  UPDATED
+  DELETED
+}

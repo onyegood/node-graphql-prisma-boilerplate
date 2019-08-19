@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
+import Joi from "joi";
 import getUserId from '../../../utils/getUserId'
 import generateToken from '../../../utils/generateToken'
 import hashPassword from '../../../utils/hashPassword'
@@ -7,9 +8,13 @@ import sendMail from '../../../utils/mailler/sendMail';
 import resetPasswordTemplate from '../../../utils/mailler/templates/resetPasswordTemplate';
 import resetPasswordTemplateMobile from '../../../utils/mailler/templates/resetPasswordTemplateMobile';
 import passwordChangedSuccessful from '../../../utils/mailler/templates/passwordChangedSuccessful';
+import { SignUpValidator } from '../../../validations';
 
 const UserMutations = {
-  async createUser(parent, args, { prisma }, info) {
+  async createUser(parent, args, { prisma, request }, info) {
+    // Validate Input
+    await Joi.validate(args.data, SignUpValidator, { abortEarly: false });
+
     const password = await hashPassword(args.data.password)
     const user = await prisma.mutation.createUser({
       data: {
@@ -33,12 +38,15 @@ const UserMutations = {
     // Do send mail
     sendMail(template);
 
+    // Set User Session this is important for server side rendering applications
+    request.response.req.session.userId = user.id;
+
     return {
       user,
       token: generateToken(user.id)
     }
   },
-  async login(parent, args, { prisma }, info) {
+  async login(parent, args, { prisma, request }, info) {
     const user = await prisma.query.user({
       where: {
         email: args.data.email
@@ -55,12 +63,16 @@ const UserMutations = {
       throw new Error('Unable to login')
     }
 
+    // Set User Session this is important for server side applications
+    request.response.req.session.userId = user.id;
+
     return {
       user,
       token: generateToken(user.id)
     }
   },
   async deleteUser(parent, args, { prisma, request }, info) {
+    // Check that user must be logged in
     const userId = getUserId(request)
 
     return prisma.mutation.deleteUser({
@@ -70,7 +82,11 @@ const UserMutations = {
     }, info)
   },
   async updateUser(parent, args, { prisma, request }, info) {
+    // Check that user must be logged in
     const userId = getUserId(request)
+
+    // Validate Input
+    await Joi.validate(args.data, SignUpValidator, { abortEarly: false });
 
     if (typeof args.data.password === 'string') {
       args.data.password = await hashPassword(args.data.password)

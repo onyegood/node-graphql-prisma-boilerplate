@@ -1,4 +1,4 @@
-# import UserOrderByInput, PermissionOrderByInput, RoleOrderByInput, from './generated/prisma.graphql'
+# import UserOrderByInput, from "../generated/prisma.graphql"
 
 type Query {
   users(
@@ -10,22 +10,6 @@ type Query {
   ): [User!]!
   user(id: ID!): User!
   me: User!
-  roles(
-    query: String
-    first: Int
-    skip: Int
-    after: String
-    orderBy: RoleOrderByInput
-  ): [Role!]!
-  role(id: ID!): Role!
-  permissions(
-    query: String
-    first: Int
-    skip: Int
-    after: String
-    orderBy: PermissionOrderByInput
-  ): [Permission!]!
-  permission(id: ID!): Permission!
 }
 
 type Mutation {
@@ -36,18 +20,8 @@ type Mutation {
   forgotPassword(data: ForgotPasswordInput!): User!
   resetPassword(data: ResetPasswordInput!): User!
   validateOTP(data: ValidateOTPInput!): User!
-  createRole(data: CreateRoleInput!): Role!
-  updateRole(id: ID!, data: UpdateRoleInput!): Role!
-  deleteRole(id: ID!): Role!
-  createPermission(data: CreatePermissionInput!): Permission!
-  updatePermission(id: ID!, data: UpdatePermissionInput!): Permission!
-  deletePermission(id: ID!): Permission!
   updateManyUsers(id: [ID!]!, data: UpdateUserInput!): User!
-  updateManyRoles(id: [ID!]!, data: UpdateRoleInput!): Role!
-  updateManyPermissions(id: [ID!]!, data: UpdatePermissionInput!): Permission!
   deleteManyUsers(id: [ID!]!): User!
-  deleteManyRoles(id: [ID!]!): Role!
-  deleteManyPermissions(id: [ID!]!): Permission!
 }
 
 # type Subscription {
@@ -114,45 +88,13 @@ type User {
   updatedAt: String!
   createdAt: String!
   role: Role!
+  onboarding: Boolean!
   resetToken: String
   resetTokenExpiration: String
   platform: String
   network: String
   os: String
   profilePicture: String
-}
-
-input CreateRoleInput {
-  name: String!
-  permissions: [ID!]!
-}
-
-input UpdateRoleInput {
-  name: String
-  permissions: [ID]
-}
-
-type Role {
-  id: ID!
-  name: String!
-  updatedAt: String!
-  createdAt: String!
-  permissions: [Permission!]!
-}
-
-input CreatePermissionInput {
-  name: String!
-}
-
-input UpdatePermissionInput {
-  name: String
-}
-
-type Permission {
-  id: ID!
-  name: String!
-  updatedAt: String!
-  createdAt: String!
 }
 
 enum MutationType {

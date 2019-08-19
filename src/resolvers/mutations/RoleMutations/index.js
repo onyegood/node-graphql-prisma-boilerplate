@@ -1,8 +1,14 @@
-import getUserId from '../../../utils/getUserId'
+import getUserId from "../../../utils/getUserId"
+import Joi from "joi";
+import { RoleValidator } from "../../../validations";
 
 const RoleMutations = {
   async createRole(parent, args, { prisma, request }, info) {
+    // Check that user must be logged in
     getUserId(request);
+    // Validation
+    await Joi.validate(args.data, RoleValidator, { abortEarly: false });
+
     const { permissions, name } = args.data;
 
     return prisma.mutation.createRole({
@@ -15,7 +21,11 @@ const RoleMutations = {
     });
   },
   async updateRole(parent, args, { prisma, request }, info) {
+    // Check that user must be logged in
     getUserId(request);
+
+    // Validation
+    await Joi.validate(args.data, RoleValidator, { abortEarly: false });
 
     const { permissions, name } = args.data;
 
@@ -32,7 +42,11 @@ const RoleMutations = {
     });
   },
   async updateManyRoles(parent, args, { prisma, request }, info) {
+    // Check that user must be logged in
     getUserId(request);
+
+    // Validation
+    await Joi.validate(args.data, RoleValidator, { abortEarly: false });
 
     await prisma.mutation.updateManyRoles({
       where: {
@@ -46,6 +60,7 @@ const RoleMutations = {
     return args.data;
   },
   async deleteRole(parent, args, { prisma, request }, info) {
+    // Check that user must be logged in
     getUserId(request);
 
     return prisma.mutation.deleteRole({
@@ -55,6 +70,7 @@ const RoleMutations = {
     });
   },
   async deleteManyRoles(parent, args, { prisma, request }, info) {
+    // Check that user must be logged in
     getUserId(request);
 
     return prisma.mutation.deleteManyRoles({

@@ -7,12 +7,14 @@ const getUserId = (request, requireAuth = true) => {
         const token = header.replace('Bearer ', '')
         const decoded = jwt.verify(token, process.env.JWT_SECRET)
         return decoded.userId
+    } else if (request.response.req.session.userId) {
+        return request.response.req.session.userId;
     }
 
     if (requireAuth) {
         throw new Error('Authentication required')
-    } 
-    
+    }
+
     return null
 }
 
