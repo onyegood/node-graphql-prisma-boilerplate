@@ -12,16 +12,29 @@ type Query {
 }
 
 type Mutation {
-  createPermission(data: CreatePermissionInput!): Permission!
-  updatePermission(id: ID!, data: UpdatePermissionInput!): Permission!
+  createPermission(data: CreatePermissionInput!): PermissionPayload!
+  updatePermission(id: ID!, data: UpdatePermissionInput!): PermissionPayload!
   deletePermission(id: ID!): Permission!
-  updateManyPermissions(id: [ID!]!, data: UpdatePermissionInput!): Permission!
-  deleteManyPermissions(id: [ID!]!): Permission!
+  updateManyPermissions(
+    id: [ID!]!
+    data: UpdatePermissionInput!
+  ): PermissionPayload!
+  deleteManyPermissions(id: [ID!]!): PermissionPayload!
 }
 
 # type Subscription {
 
 # }
+
+type Error {
+  field: String!
+  message: String!
+}
+
+type PermissionPayload {
+  payload: Permission!
+  error: Error
+}
 
 input CreatePermissionInput {
   name: String!
@@ -34,6 +47,7 @@ input UpdatePermissionInput {
 type Permission {
   id: ID!
   name: String!
+  user: User
   updatedAt: String!
   createdAt: String!
 }

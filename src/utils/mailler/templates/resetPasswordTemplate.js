@@ -1,6 +1,6 @@
 const resetPasswordTemplate = (user, token) => {
 
-  const { email } = user[0];
+  const { email } = user;
 
   const template = {
     to: email,

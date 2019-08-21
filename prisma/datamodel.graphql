@@ -6,6 +6,7 @@ type User {
   phone: String! @unique
   password: String!
   role: Role @relation(name: "RoleToUser", onDelete: SET_NULL)
+  onboarding: Boolean! @default(value: true)
   resetToken: String
   resetTokenExpiration: String
   platform: String
@@ -19,6 +20,7 @@ type User {
 type Role {
   id: ID! @id
   name: String!
+  user: User @relation(name: "UserToRole", onDelete: SET_NULL)
   permissions: [Permission!]!
     @relation(name: "PermissionToRole", onDelete: SET_NULL)
   updatedAt: DateTime! @updatedAt
@@ -28,6 +30,7 @@ type Role {
 type Permission {
   id: ID! @id
   name: String!
+  user: User @relation(name: "UserToPermission", onDelete: SET_NULL)
   updatedAt: DateTime! @updatedAt
   createdAt: DateTime! @createdAt
 }

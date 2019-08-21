@@ -1,5 +1,5 @@
-# source: http://localhost:4466/prisma-boilerplate/dev
-# timestamp: Mon Aug 19 2019 13:45:33 GMT+0100 (West Africa Standard Time)
+# source: http://localhost:4466/payroll/dev
+# timestamp: Wed Aug 21 2019 20:24:54 GMT+0100 (West Africa Standard Time)
 
 type AggregatePermission {
   count: Int!
@@ -30,24 +30,24 @@ Long can represent values between -(2^63) and 2^63 - 1.
 scalar Long
 
 type Mutation {
-  createUser(data: UserCreateInput!): User!
   createRole(data: RoleCreateInput!): Role!
   createPermission(data: PermissionCreateInput!): Permission!
-  updateUser(data: UserUpdateInput!, where: UserWhereUniqueInput!): User
+  createUser(data: UserCreateInput!): User!
   updateRole(data: RoleUpdateInput!, where: RoleWhereUniqueInput!): Role
   updatePermission(data: PermissionUpdateInput!, where: PermissionWhereUniqueInput!): Permission
-  deleteUser(where: UserWhereUniqueInput!): User
+  updateUser(data: UserUpdateInput!, where: UserWhereUniqueInput!): User
   deleteRole(where: RoleWhereUniqueInput!): Role
   deletePermission(where: PermissionWhereUniqueInput!): Permission
-  upsertUser(where: UserWhereUniqueInput!, create: UserCreateInput!, update: UserUpdateInput!): User!
+  deleteUser(where: UserWhereUniqueInput!): User
   upsertRole(where: RoleWhereUniqueInput!, create: RoleCreateInput!, update: RoleUpdateInput!): Role!
   upsertPermission(where: PermissionWhereUniqueInput!, create: PermissionCreateInput!, update: PermissionUpdateInput!): Permission!
-  updateManyUsers(data: UserUpdateManyMutationInput!, where: UserWhereInput): BatchPayload!
+  upsertUser(where: UserWhereUniqueInput!, create: UserCreateInput!, update: UserUpdateInput!): User!
   updateManyRoles(data: RoleUpdateManyMutationInput!, where: RoleWhereInput): BatchPayload!
   updateManyPermissions(data: PermissionUpdateManyMutationInput!, where: PermissionWhereInput): BatchPayload!
-  deleteManyUsers(where: UserWhereInput): BatchPayload!
+  updateManyUsers(data: UserUpdateManyMutationInput!, where: UserWhereInput): BatchPayload!
   deleteManyRoles(where: RoleWhereInput): BatchPayload!
   deleteManyPermissions(where: PermissionWhereInput): BatchPayload!
+  deleteManyUsers(where: UserWhereInput): BatchPayload!
   executeRaw(database: PrismaDatabase, query: String!): Json!
 }
 
@@ -81,6 +81,7 @@ type PageInfo {
 type Permission implements Node {
   id: ID!
   name: String!
+  user: User
   updatedAt: DateTime!
   createdAt: DateTime!
 }
@@ -98,6 +99,7 @@ type PermissionConnection {
 input PermissionCreateInput {
   id: ID
   name: String!
+  user: UserCreateOneInput
 }
 
 input PermissionCreateManyInput {
@@ -306,10 +308,12 @@ input PermissionSubscriptionWhereInput {
 
 input PermissionUpdateDataInput {
   name: String
+  user: UserUpdateOneInput
 }
 
 input PermissionUpdateInput {
   name: String
+  user: UserUpdateOneInput
 }
 
 input PermissionUpdateManyDataInput {
@@ -481,6 +485,7 @@ input PermissionWhereInput {
 
   """All values greater than or equal the given value."""
   createdAt_gte: DateTime
+  user: UserWhereInput
 }
 
 input PermissionWhereUniqueInput {
@@ -492,15 +497,15 @@ enum PrismaDatabase {
 }
 
 type Query {
-  users(where: UserWhereInput, orderBy: UserOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [User]!
   roles(where: RoleWhereInput, orderBy: RoleOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [Role]!
   permissions(where: PermissionWhereInput, orderBy: PermissionOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [Permission]!
-  user(where: UserWhereUniqueInput!): User
+  users(where: UserWhereInput, orderBy: UserOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [User]!
   role(where: RoleWhereUniqueInput!): Role
   permission(where: PermissionWhereUniqueInput!): Permission
-  usersConnection(where: UserWhereInput, orderBy: UserOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): UserConnection!
+  user(where: UserWhereUniqueInput!): User
   rolesConnection(where: RoleWhereInput, orderBy: RoleOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): RoleConnection!
   permissionsConnection(where: PermissionWhereInput, orderBy: PermissionOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): PermissionConnection!
+  usersConnection(where: UserWhereInput, orderBy: UserOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): UserConnection!
 
   """Fetches an object given its ID"""
   node(
@@ -512,6 +517,7 @@ type Query {
 type Role implements Node {
   id: ID!
   name: String!
+  user: User
   permissions(where: PermissionWhereInput, orderBy: PermissionOrderByInput, skip: Int, after: String, before: String, first: Int, last: Int): [Permission!]
   updatedAt: DateTime!
   createdAt: DateTime!
@@ -530,6 +536,7 @@ type RoleConnection {
 input RoleCreateInput {
   id: ID
   name: String!
+  user: UserCreateOneInput
   permissions: PermissionCreateManyInput
 }
 
@@ -604,11 +611,13 @@ input RoleSubscriptionWhereInput {
 
 input RoleUpdateDataInput {
   name: String
+  user: UserUpdateOneInput
   permissions: PermissionUpdateManyInput
 }
 
 input RoleUpdateInput {
   name: String
+  user: UserUpdateOneInput
   permissions: PermissionUpdateManyInput
 }
 
@@ -763,6 +772,7 @@ input RoleWhereInput {
 
   """All values greater than or equal the given value."""
   createdAt_gte: DateTime
+  user: UserWhereInput
   permissions_every: PermissionWhereInput
   permissions_some: PermissionWhereInput
   permissions_none: PermissionWhereInput
@@ -773,9 +783,9 @@ input RoleWhereUniqueInput {
 }
 
 type Subscription {
-  user(where: UserSubscriptionWhereInput): UserSubscriptionPayload
   role(where: RoleSubscriptionWhereInput): RoleSubscriptionPayload
   permission(where: PermissionSubscriptionWhereInput): PermissionSubscriptionPayload
+  user(where: UserSubscriptionWhereInput): UserSubscriptionPayload
 }
 
 type User implements Node {
@@ -786,6 +796,7 @@ type User implements Node {
   phone: String!
   password: String!
   role: Role
+  onboarding: Boolean!
   resetToken: String
   resetTokenExpiration: String
   platform: String
@@ -813,6 +824,7 @@ input UserCreateInput {
   email: String!
   phone: String!
   password: String!
+  onboarding: Boolean
   resetToken: String
   resetTokenExpiration: String
   platform: String
@@ -820,6 +832,11 @@ input UserCreateInput {
   os: String
   profilePicture: String
   role: RoleCreateOneInput
+}
+
+input UserCreateOneInput {
+  create: UserCreateInput
+  connect: UserWhereUniqueInput
 }
 
 """An edge in a connection."""
@@ -844,6 +861,8 @@ enum UserOrderByInput {
   phone_DESC
   password_ASC
   password_DESC
+  onboarding_ASC
+  onboarding_DESC
   resetToken_ASC
   resetToken_DESC
   resetTokenExpiration_ASC
@@ -869,6 +888,7 @@ type UserPreviousValues {
   email: String!
   phone: String!
   password: String!
+  onboarding: Boolean!
   resetToken: String
   resetTokenExpiration: String
   platform: String
@@ -916,12 +936,29 @@ input UserSubscriptionWhereInput {
   node: UserWhereInput
 }
 
+input UserUpdateDataInput {
+  firstName: String
+  lastName: String
+  email: String
+  phone: String
+  password: String
+  onboarding: Boolean
+  resetToken: String
+  resetTokenExpiration: String
+  platform: String
+  network: String
+  os: String
+  profilePicture: String
+  role: RoleUpdateOneInput
+}
+
 input UserUpdateInput {
   firstName: String
   lastName: String
   email: String
   phone: String
   password: String
+  onboarding: Boolean
   resetToken: String
   resetTokenExpiration: String
   platform: String
@@ -937,12 +974,27 @@ input UserUpdateManyMutationInput {
   email: String
   phone: String
   password: String
+  onboarding: Boolean
   resetToken: String
   resetTokenExpiration: String
   platform: String
   network: String
   os: String
   profilePicture: String
+}
+
+input UserUpdateOneInput {
+  create: UserCreateInput
+  connect: UserWhereUniqueInput
+  disconnect: Boolean
+  delete: Boolean
+  update: UserUpdateDataInput
+  upsert: UserUpsertNestedInput
+}
+
+input UserUpsertNestedInput {
+  update: UserUpdateDataInput!
+  create: UserCreateInput!
 }
 
 input UserWhereInput {
@@ -1194,6 +1246,10 @@ input UserWhereInput {
 
   """All values not ending with the given string."""
   password_not_ends_with: String
+  onboarding: Boolean
+
+  """All values that are not equal to given value."""
+  onboarding_not: Boolean
   resetToken: String
 
   """All values that are not equal to given value."""

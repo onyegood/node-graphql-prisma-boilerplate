@@ -5,13 +5,13 @@ import { RoleValidator } from "../../../validations";
 const RoleMutations = {
   async createRole(parent, args, { prisma, request }, info) {
     // Check that user must be logged in
-    getUserId(request);
+    // const user = getUserId(request);
     // Validation
     await Joi.validate(args.data, RoleValidator, { abortEarly: false });
 
     const { permissions, name } = args.data;
 
-    return prisma.mutation.createRole({
+    const payload = await prisma.mutation.createRole({
       data: {
         name,
         permissions: {
@@ -19,6 +19,8 @@ const RoleMutations = {
         }
       }
     });
+
+    return { payload }
   },
   async updateRole(parent, args, { prisma, request }, info) {
     // Check that user must be logged in
@@ -29,7 +31,7 @@ const RoleMutations = {
 
     const { permissions, name } = args.data;
 
-    return prisma.mutation.updateRole({
+    const payload = await prisma.mutation.updateRole({
       where: {
         id: args.id
       },
@@ -40,6 +42,8 @@ const RoleMutations = {
         }
       }
     });
+
+    return { payload }
   },
   async updateManyRoles(parent, args, { prisma, request }, info) {
     // Check that user must be logged in
@@ -48,7 +52,7 @@ const RoleMutations = {
     // Validation
     await Joi.validate(args.data, RoleValidator, { abortEarly: false });
 
-    await prisma.mutation.updateManyRoles({
+    const payload = await prisma.mutation.updateManyRoles({
       where: {
         id_in: args.id
       },
@@ -57,28 +61,32 @@ const RoleMutations = {
       }
     });
 
-    return args.data;
+    return { payload };
   },
   async deleteRole(parent, args, { prisma, request }, info) {
     // Check that user must be logged in
     getUserId(request);
 
-    return prisma.mutation.deleteRole({
+    const payload = await prisma.mutation.deleteRole({
       where: {
         id: args.id
       }
     });
+
+    return { payload };
   },
   async deleteManyRoles(parent, args, { prisma, request }, info) {
     // Check that user must be logged in
     getUserId(request);
 
-    return prisma.mutation.deleteManyRoles({
+    const payload = await prisma.mutation.deleteManyRoles({
       where: {
         id_in: args.id
       },
       data: args
     });
+
+    return { payload };
   }
 }
 

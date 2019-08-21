@@ -5,15 +5,17 @@ import { PermissionValidator } from "../../../validations";
 const PermissionMutations = {
   async createPermission(parent, args, { prisma, request }, info) {
     // Check that user must be logged in
-    getUserId(request);
+    // const user = getUserId(request);
     // Validation
     await Joi.validate(args.data, PermissionValidator);
 
-    return prisma.mutation.createPermission({
+    const payload = await prisma.mutation.createPermission({
       data: {
         ...args.data
       }
     });
+
+    return { payload }
   },
   async updatePermission(parent, args, { prisma, request }, info) {
     // Check that user must be logged in
@@ -22,7 +24,7 @@ const PermissionMutations = {
     // Validation
     await Joi.validate(args.data, PermissionValidator);
 
-    return prisma.mutation.updatePermission({
+    const payload = await prisma.mutation.updatePermission({
       where: {
         id: args.id
       },
@@ -30,26 +32,32 @@ const PermissionMutations = {
         ...args.data
       }
     });
+
+    return { payload }
   },
   async deletePermission(parent, args, { prisma, request }, info) {
     // Check that user must be logged in
     getUserId(request);
 
-    return prisma.mutation.deletePermission({
+    const payload = await prisma.mutation.deletePermission({
       where: {
         id: args.id
       }
     });
+
+    return { payload }
   },
   async deleteManyPermissions(parent, args, { prisma, request }, info) {
     // Check that user must be logged in
     getUserId(request);
 
-    return prisma.mutation.deleteManyPermissions({
+    const payload = await prisma.mutation.deleteManyPermissions({
       where: {
         id_in: args.id
       }
     });
+
+    return { payload }
   }
 }
 

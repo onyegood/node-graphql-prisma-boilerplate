@@ -21,22 +21,18 @@ const UserQuery = {
 
     return prisma.query.users(opArgs, info)
   },
-  user(parent, args, { prisma, request }, info) {
-    const userId = getUserId(request);
+  user(parent, { email }, { prisma, request }, info) {
+    const id = getUserId(request);
 
     return prisma.query.user({
-      where: {
-        id: userId
-      }
+      where: { id }
     }, info)
   },
   me(parent, args, { prisma, request }, info) {
-    const userId = getUserId(request)
+    const id = getUserId(request)
 
     return prisma.query.user({
-      where: {
-        id: userId
-      }
+      where: { id }
     }, info)
   }
 }

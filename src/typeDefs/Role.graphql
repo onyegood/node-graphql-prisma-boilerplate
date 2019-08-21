@@ -12,20 +12,31 @@ type Query {
 }
 
 type Mutation {
-  createRole(data: CreateRoleInput!): Role!
-  updateRole(id: ID!, data: UpdateRoleInput!): Role!
-  deleteRole(id: ID!): Role!
-  updateManyRoles(id: [ID!]!, data: UpdateRoleInput!): Role!
-  deleteManyRoles(id: [ID!]!): Role!
+  createRole(data: CreateRoleInput!): RolePayload!
+  updateRole(id: ID!, data: UpdateRoleInput!): RolePayload!
+  deleteRole(id: ID!): RolePayload!
+  updateManyRoles(id: [ID!]!, data: UpdateRoleInput!): RolePayload!
+  deleteManyRoles(id: [ID!]!): RolePayload!
 }
 
 # type Subscription {
 
 # }
 
+type Error {
+  field: String!
+  message: String!
+}
+
+type RolePayload {
+  payload: Role!
+  error: Error
+}
+
 input CreateRoleInput {
   name: String!
   permissions: [ID!]!
+  user: ID
 }
 
 input UpdateRoleInput {
@@ -38,6 +49,7 @@ type Role {
   name: String!
   updatedAt: String!
   createdAt: String!
+  user: User
   permissions: [Permission!]!
 }
 

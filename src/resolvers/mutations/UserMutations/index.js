@@ -2,27 +2,62 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import Joi from "joi";
 import getUserId from '../../../utils/getUserId'
+import checkRefreshToken from "../../../utils/checkRefreshToken";
 import generateToken from '../../../utils/generateToken'
 import hashPassword from '../../../utils/hashPassword'
 import sendMail from '../../../utils/mailler/sendMail';
 import resetPasswordTemplate from '../../../utils/mailler/templates/resetPasswordTemplate';
 import resetPasswordTemplateMobile from '../../../utils/mailler/templates/resetPasswordTemplateMobile';
 import passwordChangedSuccessful from '../../../utils/mailler/templates/passwordChangedSuccessful';
-import { SignUpValidator } from '../../../validations';
+import { SignUpValidator, UpdateUserValidator, ResetPasswordValidator, OTPValidator } from '../../../validations';
+
 
 const UserMutations = {
-  async createUser(parent, args, { prisma, request }, info) {
+  async refreshToken(parent, args, { request }, info) {
+    const userId = checkRefreshToken(request);
+    if (!userId) {
+      throw new Error("In valid token")
+    }
+    return generateToken(userId);
+  },
+  async createUser(parent, { data }, { prisma, request }, info) {
     // Validate Input
-    await Joi.validate(args.data, SignUpValidator, { abortEarly: false });
+    await Joi.validate(data, SignUpValidator, { abortEarly: false });
 
-    const password = await hashPassword(args.data.password)
+    const emailExist = await prisma.query.user({
+      where: { email: data.email }
+    });
+
+    if (emailExist) {
+      return {
+        error: {
+          field: "email",
+          message: "Email is already taken"
+        }
+      }
+    }
+
+    const phoneExist = await prisma.query.user({
+      where: { phone: data.phone }
+    });
+
+    if (phoneExist) {
+      return {
+        error: {
+          field: "phone",
+          message: "Phone number already exist"
+        }
+      }
+    }
+
+    const password = await hashPassword(data.password);
     const user = await prisma.mutation.createUser({
       data: {
-        ...args.data,
+        ...data,
         password,
         role: {
           connect: {
-            id: args.data.role
+            id: data.role
           }
         }
       }
@@ -42,74 +77,114 @@ const UserMutations = {
     request.response.req.session.userId = user.id;
 
     return {
-      user,
-      token: generateToken(user.id)
+      payload: {
+        user,
+        token: generateToken(user.id)
+      }
     }
   },
-  async login(parent, args, { prisma, request }, info) {
+  async login(parent, { data: { password, email } }, { prisma, request }, info) {
     const user = await prisma.query.user({
-      where: {
-        email: args.data.email
-      }
+      where: { email }
     });
 
     if (!user) {
-      throw new Error('Unable to login')
+      return {
+        error: {
+          field: "email",
+          message: "Invalid email"
+        }
+      }
+
     }
 
-    const isMatch = await bcrypt.compare(args.data.password, user.password)
+    const isMatch = await bcrypt.compare(password, user.password)
 
     if (!isMatch) {
-      throw new Error('Unable to login')
+      return {
+        error: {
+          field: "password",
+          message: "Incorrect password"
+        }
+      }
     }
 
     // Set User Session this is important for server side applications
     request.response.req.session.userId = user.id;
 
     return {
-      user,
-      token: generateToken(user.id)
+      payload: {
+        user,
+        token: generateToken(user.id)
+      }
     }
   },
-  async deleteUser(parent, args, { prisma, request }, info) {
+  async deleteUser(parent, { id }, { prisma, request }, info) {
+    // Check that user must be logged in
+    getUserId(request);
+
+    const user = await prisma.mutation.deleteUser({
+      where: { id }
+    });
+
+    return { user };
+
+  },
+  async deleteMyAccount(parent, args, { prisma, request }, info) {
+    // Check that user must be logged in
+    const id = getUserId(request);
+
+    const user = await prisma.mutation.deleteUser({
+      where: { id }
+    });
+
+    return { user };
+
+  },
+  async updateUser(parent, { data }, { prisma, request }, info) {
     // Check that user must be logged in
     const userId = getUserId(request)
 
-    return prisma.mutation.deleteUser({
-      where: {
-        id: userId
+    if (!userId) {
+      return {
+        error: {
+          field: "email",
+          message: "User not found"
+        }
       }
-    }, info)
-  },
-  async updateUser(parent, args, { prisma, request }, info) {
-    // Check that user must be logged in
-    const userId = getUserId(request)
+    }
 
     // Validate Input
-    await Joi.validate(args.data, SignUpValidator, { abortEarly: false });
+    // await Joi.validate(data, UpdateUserValidator, { abortEarly: false });
 
-    if (typeof args.data.password === 'string') {
-      args.data.password = await hashPassword(args.data.password)
+    if (typeof data.password === 'string') {
+      data.password = await hashPassword(data.password)
     }
 
-    return prisma.mutation.updateUser({
+    const user = await prisma.mutation.updateUser({
       where: {
         id: userId
       },
-      data: args.data
-    }, info)
-  },
-  async forgotPassword(parent, args, { prisma }, info) {
-    const { email, platform } = args.data;
+      data
+    })
 
-    const user = await prisma.query.users({
+    return { user };
+  },
+  async forgotPassword(parent, { data: { platform, email } }, { prisma }, info) {
+
+    const user = await prisma.query.user({
       where: {
         email
       }
     });
 
     if (!user) {
-      throw new Error('Email does not exist')
+      return {
+        error: {
+          field: "email",
+          message: "Email does not exist"
+        }
+      }
     }
 
     let token;
@@ -121,7 +196,7 @@ const UserMutations = {
       // Email Template type
       template = resetPasswordTemplateMobile(user, token);
     } else {
-      token = generateToken(user[0].id);
+      token = generateToken(user.id);
       // Email Template type
       template = resetPasswordTemplate(user, token);
     }
@@ -134,16 +209,19 @@ const UserMutations = {
         resetToken: token,
         resetTokenExpiration: (Date.now() + 3600000).toString()
       }
-    }, info)
+    });
 
-    // Do send mail here
+    // // Do send mail here
     sendMail(template);
 
-    return user[0];
+    // // Return user
+    return { user };
 
   },
-  async resetPassword(parent, args, { prisma }, info) {
-    const { password, passwordToken } = args.data;
+  async resetPassword(parent, { data: { password, passwordToken } }, { prisma }, info) {
+
+    // Validate Input
+    await Joi.validate({ password, passwordToken }, ResetPasswordValidator, { abortEarly: false });
 
     let user;
 
@@ -169,13 +247,17 @@ const UserMutations = {
             { resetToken: passwordToken },
             { resetTokenExpiration_gt: Date.now().toString() }
           ]
-
         }
       });
     }
 
     if (!user) {
-      throw new Error('User not found');
+      return {
+        error: {
+          field: "password",
+          message: "User not found"
+        }
+      }
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
@@ -189,7 +271,7 @@ const UserMutations = {
         resetToken: null,
         resetTokenExpiration: null
       }
-    }, info)
+    })
 
     // Email Template
     const message = `
@@ -200,10 +282,11 @@ const UserMutations = {
     // Do send mail
     sendMail(template);
 
-    return response
+    return { user: response }
   },
-  async validateOTP(parent, args, { prisma }, info) {
-    const { passwordToken } = args.data;
+  async validateOTP(parent, { data: { passwordToken } }, { prisma }, info) {
+    // Validate Input
+    await Joi.validate({ passwordToken }, OTPValidator, { abortEarly: false });
 
     const user = await prisma.query.users({
       where: {
@@ -215,10 +298,15 @@ const UserMutations = {
     });
 
     if (!user) {
-      throw new Error('Invalid OTP.');
+      return {
+        error: {
+          field: "passwordToken",
+          message: "Invalid OTP."
+        }
+      }
     }
 
-    return user[0]
+    return { user: user[0] }
 
   }
 }
